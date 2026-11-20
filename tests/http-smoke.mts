@@ -12,6 +12,7 @@ for (const path of [
   console.log("PASS GET", path);
 }
 let workspace = demoWorkspace();
+workspace.alerts = [];
 async function action(
   a: unknown,
   status = 200,
@@ -49,6 +50,10 @@ await action({
   topic: "Triage inbox",
   channel: "Instagram",
 });
+await action({ type: "sendReply", id: "e3" }, 400);
+const crisis = workspace.alerts.find((alert) => alert.engagementId === "e3");
+assert.equal(crisis?.status, "Open");
+await action({ type: "resolve", id: crisis!.id });
 await action({ type: "sendReply", id: "e3" }, 400);
 await action({ type: "reviewReply", id: "e3" });
 await action({ type: "sendReply", id: "e3" });

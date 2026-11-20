@@ -248,6 +248,7 @@ function Generator({ task = "create" }: { task?: "create" | "plan" }) {
 function PostEditor({ post, onClose }: { post: Post; onClose: () => void }) {
   const { act, busy } = useWorkspace();
   const [draft, setDraft] = useState(post);
+  const published = post.status === "Published (demo)";
   const modalRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -284,12 +285,12 @@ function PostEditor({ post, onClose }: { post: Post; onClose: () => void }) {
         role="dialog"
         ref={modalRef}
         aria-modal="true"
-        aria-label="Edit post"
+        aria-label={published ? "Published demo post" : "Edit post"}
         className="modal"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-title">
-          <h2>Edit & reschedule</h2>
+          <h2>{published ? "Published demo post" : "Edit & reschedule"}</h2>
           <button
             onClick={onClose}
             className="icon-button"
@@ -299,75 +300,86 @@ function PostEditor({ post, onClose }: { post: Post; onClose: () => void }) {
           </button>
         </div>
         <p className="muted">
-          Saving changes returns this post to Draft and clears its approval.
+          {published
+            ? "Simulated delivery. This revision is read-only."
+            : "Saving changes returns this post to Draft and clears its approval."}
         </p>
         <form
           onSubmit={async (e) => {
             e.preventDefault();
+            if (published) return;
             if (await act({ type: "savePost", post: draft })) onClose();
           }}
         >
-          <label>
-            Title
-            <input
-              autoFocus
-              required
-              maxLength={300}
-              value={draft.title}
-              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-            />
-          </label>
-          <div className="form-grid">
+          <fieldset disabled={published || busy}>
             <label>
-              Channel
-              <select
-                value={draft.channel}
-                onChange={(e) =>
-                  setDraft({ ...draft, channel: e.target.value as Channel })
-                }
-              >
-                {channels.map((c) => (
-                  <option key={c}>{c}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Planned date
+              Title
               <input
+                autoFocus
                 required
-                type="date"
-                value={draft.date}
-                onChange={(e) => setDraft({ ...draft, date: e.target.value })}
+                maxLength={300}
+                value={draft.title}
+                onChange={(e) => setDraft({ ...draft, title: e.target.value })}
               />
             </label>
-          </div>
-          <label>
-            Caption
-            <textarea
-              required
-              rows={7}
-              value={draft.caption}
-              onChange={(e) => setDraft({ ...draft, caption: e.target.value })}
-            />
-          </label>
-          <label>
-            Hashtags
-            <input
-              value={draft.hashtags}
-              onChange={(e) => setDraft({ ...draft, hashtags: e.target.value })}
-            />
-          </label>
-          <label>
-            Carousel slides
-            <textarea
-              rows={5}
-              value={draft.slides}
-              onChange={(e) => setDraft({ ...draft, slides: e.target.value })}
-            />
-          </label>
-          <button className="button primary" disabled={busy}>
-            Save draft
-          </button>
+            <div className="form-grid">
+              <label>
+                Channel
+                <select
+                  value={draft.channel}
+                  onChange={(e) =>
+                    setDraft({ ...draft, channel: e.target.value as Channel })
+                  }
+                >
+                  {channels.map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Planned date
+                <input
+                  required
+                  type="date"
+                  value={draft.date}
+                  onChange={(e) => setDraft({ ...draft, date: e.target.value })}
+                />
+              </label>
+            </div>
+            <label>
+              Caption
+              <textarea
+                required
+                rows={7}
+                value={draft.caption}
+                onChange={(e) =>
+                  setDraft({ ...draft, caption: e.target.value })
+                }
+              />
+            </label>
+            <label>
+              Hashtags
+              <input
+                value={draft.hashtags}
+                onChange={(e) =>
+                  setDraft({ ...draft, hashtags: e.target.value })
+                }
+              />
+            </label>
+            <label>
+              Carousel slides
+              <textarea
+                rows={5}
+                value={draft.slides}
+                onChange={(e) => setDraft({ ...draft, slides: e.target.value })}
+              />
+            </label>
+            {!published && (
+              <button className="button primary" disabled={busy}>
+                Save draft
+              </button>
+            )}
+          </fieldset>
         </form>
       </section>
     </div>
@@ -762,6 +774,9 @@ function Engagement() {
   const list = workspace.engagements.filter(
     (e) => filter === "All" || e.category === filter,
   );
+  useEffect(() => {
+    document.getElementById(location.hash.slice(1))?.scrollIntoView();
+  }, []);
   return (
     <>
       <div className="toolbar">
@@ -803,7 +818,7 @@ function Engagement() {
         ))}
       </div>
       {list.map((e) => (
-        <article className="card" key={e.id}>
+        <article className="card" key={e.id} id={`conversation-${e.id}`}>
           <div className="row">
             <span className="avatar">
               {e.author
@@ -930,9 +945,14 @@ function Crisis() {
           >
             <p>{e?.text}</p>
             <div className="toolbar">
-              <Link href="/engagement" className="button">
-                Review conversation <ArrowRight size={14} />
-              </Link>
+              {e && (
+                <Link
+                  href={`/engagement#conversation-${e.id}`}
+                  className="button"
+                >
+                  Review conversation <ArrowRight size={14} />
+                </Link>
+              )}
               {a.status === "Open" && (
                 <button
                   disabled={busy}

@@ -159,3 +159,39 @@ test("unconfigured model fails without fabricated success", async () => {
     if (previous) process.env.ANTHROPIC_API_KEY = previous;
   }
 });
+
+test("scheduler isolates blocked revisions and delivers other approved posts", () => {
+  let w = demoWorkspace();
+  for (const post of w.posts) {
+    if (post.status === "Draft") {
+      w = transition(w, {
+        type: "reviewPost",
+        id: post.id,
+        decision: "In review",
+      });
+    }
+    w = transition(w, {
+      type: "reviewPost",
+      id: post.id,
+      decision: "Approved",
+    });
+    w = transition(w, { type: "schedule", id: post.id });
+  }
+  w.posts[0].caption = "Changed after approval";
+  assert.throws(
+    () =>
+      transition(
+        { ...w, posts: [{ ...w.posts[0], status: "Approved" }] },
+        { type: "schedule", id: w.posts[0].id },
+      ),
+    /current post revision/,
+  );
+  w = transition(w, { type: "tick" });
+  assert.equal(w.posts[0].status, "Changes requested");
+  assert.equal(w.posts[1].status, "Published (demo)");
+  assert.ok(
+    w.logs.some(
+      (log) => log.tool === "scheduler.publish" && log.status === "error",
+    ),
+  );
+});

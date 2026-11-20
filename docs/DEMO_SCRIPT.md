@@ -17,3 +17,14 @@ Record at 1920×1080 or 1440×900 with readable browser zoom. Hide notifications
 If recording exceeds five minutes, shorten the opening and code view. Aim for 4:10. Record actual actions; do not splice in fabricated success. After recording, upload to a public video host, enable public access, and open the link in a signed-out/private browser. Confirm sound, readability, 3–5 minute duration and no secrets before submitting. No video has been recorded or published by this build.
 
 Suggested title: “SocialPilot AI — Safe, Tool-Using Social Media Executive | WAE Agent Maker 2026”.
+
+## Exact recording inputs
+
+1. In **Integrations**, reset demo data and return to **Dashboard** before recording.
+2. In **Brand Profile**, set **Business goals** to “Help busy professionals build a daily reuse habit” and click **Save brand profile**.
+3. In **AI Agent**, keep **PLAN** selected and run the workflow. Point to the calendar result and its channel list.
+4. In **Content Calendar**, choose **Instagram** and open a draft. Close the editor and go to **Content Studio**.
+5. Enter “Three ways to reuse your morning cup,” select **Instagram** and keep the default planned date. Click **Generate content**. Open **Edit** on the new card, show the carousel slides, save the draft, then click **Submit for review**.
+6. In **Approval Inbox → In review**, select that title and click **Approve**. Open **Approved**, click **Schedule demo** on the same card, then go to **Content Calendar → Run demo scheduler**. Point to **Published (demo)** on the calendar.
+7. In **Engagement**, click **Triage inbox**, then **sensitive**. Show Jordan Lee’s draft. Open **Crisis Center → Review conversation**. Point to the flagged conversation and its **Approve reply** button. To show the gate, approve first, then click **Simulate sending**.
+8. In **Analytics**, choose **Instagram → Recent week** and click **Generate insights**. Show simulated post and reply totals, then finish on **Integrations**.

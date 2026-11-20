@@ -11,10 +11,12 @@ const requestSchema = z.object({
 });
 export async function POST(req: Request) {
   try {
-    if (
-      req.headers.get("origin") &&
-      req.headers.get("origin") !== new URL(req.url).origin
-    )
+    const origin = req.headers.get("origin");
+    const requestUrl = new URL(req.url);
+    const host = req.headers.get("host") ?? requestUrl.host;
+    const protocol =
+      req.headers.get("x-forwarded-proto") ?? requestUrl.protocol.slice(0, -1);
+    if (origin && origin !== `${protocol}://${host}`)
       return NextResponse.json(
         { error: "Cross-origin request refused" },
         { status: 403 },

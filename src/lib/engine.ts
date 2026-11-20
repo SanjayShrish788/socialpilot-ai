@@ -1,6 +1,7 @@
 import type { Workspace, Post, Channel } from "./workspace";
 import type { Action } from "./validation";
 import { DemoScheduler } from "./integrations";
+import { postSchema } from "./validation";
 export const id = () => crypto.randomUUID();
 export function audit(
   w: Workspace,
@@ -64,6 +65,16 @@ function record(
     time: new Date().toISOString(),
   });
 }
+function checkPostApproval(w: Workspace, post: Post) {
+  const approval = w.approvals.find((a) => a.targetId === post.id);
+  const revision = JSON.stringify(
+    postSchema.parse({ ...post, status: "Approved" }),
+  );
+  if (approval?.decision !== "Approved" || approval.content !== revision) {
+    throw new Error("Human approval of the current post revision is required");
+  }
+  guard(w, [post.title, post.caption, post.hashtags, post.slides].join(" "));
+}
 export function transition(
   workspace: Workspace,
   action: Exclude<Action, { type: "agent" }>,
@@ -95,28 +106,47 @@ export function transition(
       if (!post) throw new Error("Post not found");
       if (post.status === "Published (demo)")
         throw new Error("Published content cannot be reviewed again");
-      if (action.decision === "Approved" && post.status !== "In review")
+      if (action.decision === "In review") {
+        if (post.status !== "Draft" && post.status !== "Changes requested")
+          throw new Error(
+            "Only drafts and posts needing changes can be submitted",
+          );
+      } else if (post.status !== "In review") {
         throw new Error("Submit the draft for review first");
+      }
       if (action.decision === "Approved") {
-        guard(w, post.caption + " " + post.hashtags + " " + post.slides);
+        guard(
+          w,
+          [post.title, post.caption, post.hashtags, post.slides].join(" "),
+        );
         if (!post.caption.trim()) throw new Error("A caption is required");
       }
       post.status = action.decision;
-      record(w, post.id, action.decision, JSON.stringify(post));
+      record(
+        w,
+        post.id,
+        action.decision,
+        JSON.stringify(postSchema.parse(post)),
+      );
       break;
     case "schedule":
       if (!post || post.status !== "Approved")
         throw new Error("Human approval is required before scheduling");
-      guard(w, post.caption + " " + post.hashtags + " " + post.slides);
+      checkPostApproval(w, post);
       post.status = "Scheduled";
       break;
     case "tick":
       for (const p of new DemoScheduler().due(w.posts, new Date())) {
-        const approval = w.approvals.find(
-          (a) => a.targetId === p.id && a.decision === "Approved",
-        );
-        if (!approval) throw new Error("Missing approval record");
-        guard(w, p.caption + " " + p.hashtags + " " + p.slides);
+        try {
+          checkPostApproval(w, p);
+        } catch (error) {
+          const reason =
+            error instanceof Error ? error.message : "Approval check failed";
+          p.status = "Changes requested";
+          record(w, p.id, "Scheduling blocked", reason);
+          audit(w, "scheduler.publish", `${p.title}: ${reason}`, "error");
+          continue;
+        }
         p.status = "Published (demo)";
         audit(
           w,

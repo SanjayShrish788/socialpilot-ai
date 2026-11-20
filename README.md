@@ -137,6 +137,13 @@ gh auth login
 gh repo create socialpilot-ai --public --source . --remote origin --push
 ```
 
-For Vercel, import the repository, choose Next.js, use Node 24, build command `npm run build`, and set optional environment variables. The demo works without any secrets. Authorize the intended team if Vercel reports missing access. Verify `/api/health`, create a draft, approve it and run the demo scheduler after deployment. Never report a deployment URL until Vercel reaches READY and the app has been checked.
+To deploy the credential-free demo:
+
+1. Open [Vercel New Project](https://vercel.com/new/import) in a Vercel team you can deploy to. Connect GitHub and import [SanjayShrish788/socialpilot-ai](https://github.com/SanjayShrish788/socialpilot-ai).
+2. Choose the Next.js preset with repository root as the root directory. Set the install command to `npm ci` and build command to `npm run build`. Keep the output directory at its default. Use Node.js 24.x in Project Settings.
+3. Leave environment variables empty. Click **Deploy**. Confirm **Settings → Environments → Production → Branch Tracking** points to `codex/socialpilot-ai`. If a preview was built from that branch first, redeploy it to production after setting branch tracking.
+4. When the deployment shows **Ready**, open the production URL and its `/api/health` endpoint in a signed-out browser. Run a draft through approval and the demo scheduler. The public URL is ready to share when the app loads and the post reaches **Published (demo)**.
+
+See [Vercel Git deployments](https://vercel.com/docs/git) for branch tracking and imports.
 
 See `docs/DEMO_SCRIPT.md`, `docs/SUBMISSION_CHECKLIST.md` and `docs/VERIFICATION.md` for the recording sequence and evidence.

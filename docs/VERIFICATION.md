@@ -35,3 +35,6 @@ Screenshot: `docs/dashboard.jpg`.
 - Vercel connector returned HTTP 403 for the configured team; user team authorization is required.
 - Public video recording/upload remains manual; a complete 4-minute recording script is included.
 
+## Competition finalization
+
+The production build passed lint, type checking, 14 automated tests, and an HTTP smoke test with provider and database credentials cleared. All ten screens and the health endpoint responded successfully. The smoke test generated a fresh crisis alert from an empty alert list, confirmed that resolving it did not authorize a reply, and simulated delivery only after explicit approval. It also exercised post review and scheduling, rejected a foreign origin, and confirmed that paid AI requires authorization.
