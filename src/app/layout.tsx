@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Dashboard | SocialPilot AI",
+    default: "SocialPilot AI",
     template: "%s | SocialPilot AI",
   },
   description:

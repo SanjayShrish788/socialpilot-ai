@@ -25,7 +25,7 @@ import {
 } from "@/lib/workspace";
 import { useWorkspace } from "./workspace-provider";
 import { Card, EmptyState, PageHeader } from "./ui";
-import { Performance } from "./dashboard";
+import { Performance } from "./performance";
 import { ContentPerformance } from "./content-performance";
 import { Settings } from "./settings";
 const today = () => new Date().toISOString().slice(0, 10);

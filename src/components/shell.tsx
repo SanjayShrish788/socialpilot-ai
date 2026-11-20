@@ -6,7 +6,6 @@ import {
   ChevronRight,
   CircleAlert,
   ClipboardCheck,
-  LayoutDashboard,
   Menu,
   MessageSquare,
   PanelTop,
@@ -25,7 +24,6 @@ const groups = [
   {
     label: "Workspace",
     links: [
-      ["/", "Dashboard", LayoutDashboard],
       ["/brand-profile", "Brand Profile", PanelTop],
       ["/ai-agent", "AI Agent", Sparkles],
     ],
@@ -66,7 +64,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
         Skip to content
       </a>
       <aside id="navigation" className={"sidebar" + (menuOpen ? " open" : "")}>
-        <Link href="/" className="wordmark" onClick={() => setMenuOpen(false)}>
+        <Link
+          href="/brand-profile"
+          className="wordmark"
+          onClick={() => setMenuOpen(false)}
+        >
           <span className="brand-mark">
             <Radio size={22} />
           </span>

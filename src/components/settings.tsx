@@ -108,21 +108,33 @@ export function Settings() {
             name: "Instagram",
             logo: "◎",
             text: "Posts, captions, comments and carousel drafts.",
+            steps:
+              "Create a Meta developer app and connect an eligible Instagram professional account. Request the permissions required for your use case and complete any Meta review. A developer must then implement and test OAuth, publishing and comment access in the social adapter.",
+            url: "https://developers.facebook.com/docs/instagram-platform/",
           },
           {
             name: "LinkedIn",
             logo: "in",
             text: "Professional content, conversations and channel insights.",
+            steps:
+              "Create a LinkedIn developer app, request access to the appropriate products and posting permissions, and connect an eligible account or organization. A developer must implement and test OAuth and the Posts API in the social adapter.",
+            url: "https://learn.microsoft.com/en-us/linkedin/marketing/",
           },
           {
             name: "Meta / Facebook",
             logo: "f",
             text: "Page content and comments through the Meta adapter.",
+            steps:
+              "Create a Meta developer app, connect the Facebook Page, and request the required Page permissions and app review. A developer must implement and test OAuth, Page publishing and comment access in the social adapter.",
+            url: "https://developers.facebook.com/docs/pages-api/",
           },
           {
             name: "Social listening",
             logo: "◉",
             text: "Seeded brand mentions. Live listening requires a licensed provider.",
+            steps:
+              "Choose a listening provider and obtain access to its API or webhooks. A developer must implement the listening adapter and verify incoming data before real mentions appear here.",
+            url: "https://developers.facebook.com/docs/graph-api/webhooks/",
           },
         ].map((c) => (
           <Card
@@ -134,12 +146,19 @@ export function Settings() {
             <p>{c.text}</p>
             <details>
               <summary className="text-action">Connection requirements</summary>
+              <p className="muted">{c.steps}</p>
               <p className="muted">
-                Create a developer application, obtain approved account scopes,
-                configure server-only OAuth credentials and implement the
-                adapter in src/lib/integrations.ts. See README for setup. Live
-                delivery is intentionally disabled until connected and tested.
+                This project does not yet provide a live connection button.
+                Adding credentials alone will not connect this service.
               </p>
+              <a
+                className="text-action"
+                href={c.url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Official developer documentation ↗
+              </a>
             </details>
           </Card>
         ))}
@@ -166,6 +185,33 @@ export function Settings() {
             Compatible:{" "}
             {health?.ai.compatible ? "Configured" : "Not configured"}
           </p>
+          <details>
+            <summary className="text-action">
+              How to connect OpenAI or Claude
+            </summary>
+            <ol className="muted">
+              <li>Copy .env.example to .env.local in the project folder.</li>
+              <li>
+                For OpenAI, set AI_API_KEY and AI_MODEL. For Claude, set
+                ANTHROPIC_API_KEY and ANTHROPIC_MODEL.
+              </li>
+              <li>
+                Set APP_ACCESS_TOKEN to a long random value and restart the app.
+              </li>
+              <li>
+                Select the matching provider above. Enter the APP_ACCESS_TOKEN
+                below, then save it for this tab.
+              </li>
+              <li>
+                Open AI Agent, choose a workflow, and check its execution
+                timeline.
+              </li>
+            </ol>
+            <p className="muted">
+              Configured means server values are present. A successful workflow
+              confirms the provider connection.
+            </p>
+          </details>
           <label>
             AI access token
             <input
@@ -186,6 +232,11 @@ export function Settings() {
           >
             Save session token
           </button>
+          {message && (
+            <p className="muted" role="status">
+              {message}
+            </p>
+          )}
           <div className="hint" style={{ marginTop: 18 }}>
             Set server variables ANTHROPIC_API_KEY / ANTHROPIC_MODEL or
             AI_API_KEY / AI_MODEL, and APP_ACCESS_TOKEN. Never place API keys in
@@ -200,6 +251,40 @@ export function Settings() {
           <span className="badge">
             {db ? "Supabase configured" : "Local persistence active"}
           </span>
+          <details style={{ marginTop: 16 }}>
+            <summary className="text-action">How to connect Supabase</summary>
+            <ol className="muted">
+              <li>
+                Create a Supabase project and run
+                supabase/migrations/001_initial.sql in its SQL Editor.
+              </li>
+              <li>
+                Copy the project URL and publishable or anon key into
+                NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in
+                .env.local.
+              </li>
+              <li>
+                Enable email sign-in and allow this app’s /integrations URL as
+                an auth redirect.
+              </li>
+              <li>
+                Restart or rebuild the app, sign in below, then choose Save to
+                cloud.
+              </li>
+            </ol>
+            <p className="muted">
+              Use the project publishable or anon key, not a personal access
+              token or service-role key. Cloud saves are manual.
+            </p>
+            <a
+              className="text-action"
+              href="https://supabase.com/docs/guides/getting-started/quickstarts/nextjs"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Supabase setup guide ↗
+            </a>
+          </details>
           <p style={{ marginTop: 16 }}>
             Your demo workspace is saved in this browser after every action.
             Cloud snapshots require the SQL migration and an authenticated user.

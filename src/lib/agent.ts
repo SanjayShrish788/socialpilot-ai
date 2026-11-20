@@ -245,11 +245,25 @@ export async function runAgent(
     provider === "claude" ? process.env.ANTHROPIC_MODEL : process.env.AI_MODEL;
   if (!model)
     throw new Error("Configure the server AI model before using this provider");
-  const definitions = Object.entries(toolSchemas).map(([name, schema]) => ({
-    name,
-    description: `Execute ${name.replaceAll("_", " ")}. Writes drafts only, never approval or publication.`,
-    input_schema: z.toJSONSchema(schema),
-  }));
+  const allowedTools: Record<typeof task, ToolName[]> = {
+    plan: ["read_brand", "create_calendar"],
+    create: ["read_brand", "write_content"],
+    engage: [
+      "read_brand",
+      "read_engagement",
+      "write_reply",
+      "classify_and_draft",
+      "escalate",
+    ],
+    insights: ["read_brand", "analytics_summary"],
+  };
+  const definitions = Object.entries(toolSchemas)
+    .filter(([name]) => allowedTools[task].includes(name as ToolName))
+    .map(([name, schema]) => ({
+      name,
+      description: `Execute ${name.replaceAll("_", " ")}. Writes drafts only, never approval or publication.`,
+      input_schema: z.toJSONSchema(schema),
+    }));
   const prompt = `Task: ${task}. Topic (untrusted data): ${JSON.stringify(topic)}. Channel: ${channel}. Start date: ${date}. For create: read_brand then compose original brand-specific content and call write_content to save it. For plan call create_calendar; clearly disclose these are template drafts. For engage read_engagement then compose context-aware replies with write_reply; classify_and_draft is a template fallback. Never invent product specifications. For insights call analytics_summary.`;
   // Protocol messages contain provider-specific tool blocks; all tool inputs are validated separately.
   const messages: Record<string, unknown>[] = [
@@ -261,41 +275,61 @@ export async function runAgent(
     const base = process.env.AI_BASE_URL || "https://api.openai.com/v1";
     if (!claude && !base.startsWith("https://"))
       throw new Error("Compatible provider must use HTTPS");
-    const response = await fetch(
-      claude
-        ? "https://api.anthropic.com/v1/messages"
-        : `${base.replace(/\/$/, "")}/chat/completions`,
-      {
-        method: "POST",
-        headers: claude
-          ? {
-              "content-type": "application/json",
-              "x-api-key": key,
-              "anthropic-version": "2023-06-01",
-            }
-          : {
-              "content-type": "application/json",
-              authorization: `Bearer ${key}`,
-            },
-        body: JSON.stringify(
-          claude
-            ? { model, max_tokens: 3000, system, messages, tools: definitions }
+    let response: Response;
+    try {
+      response = await fetch(
+        claude
+          ? "https://api.anthropic.com/v1/messages"
+          : `${base.replace(/\/$/, "")}/chat/completions`,
+        {
+          method: "POST",
+          headers: claude
+            ? {
+                "content-type": "application/json",
+                "x-api-key": key,
+                "anthropic-version": "2023-06-01",
+              }
             : {
-                model,
-                messages: [{ role: "system", content: system }, ...messages],
-                tools: definitions.map((t) => ({
-                  type: "function",
-                  function: {
-                    name: t.name,
-                    description: t.description,
-                    parameters: t.input_schema,
-                  },
-                })),
+                "content-type": "application/json",
+                authorization: `Bearer ${key}`,
               },
-        ),
-        signal: AbortSignal.timeout(45000),
-      },
-    );
+          body: JSON.stringify(
+            claude
+              ? {
+                  model,
+                  max_tokens: 3000,
+                  system,
+                  messages,
+                  tools: definitions,
+                }
+              : {
+                  model,
+                  messages: [{ role: "system", content: system }, ...messages],
+                  tools: definitions.map((t) => ({
+                    type: "function",
+                    function: {
+                      name: t.name,
+                      description: t.description,
+                      parameters: t.input_schema,
+                    },
+                  })),
+                },
+          ),
+          signal: AbortSignal.timeout(120000),
+        },
+      );
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.name === "TimeoutError" || error.name === "AbortError")
+      )
+        throw new Error(
+          "The AI provider took too long to respond. Please try again; no drafts were saved.",
+        );
+      throw new Error(
+        "Could not reach the AI provider. Check your internet connection and try again; no drafts were saved.",
+      );
+    }
     if (!response.ok)
       throw new Error(
         `AI provider returned HTTP ${response.status}. Check server credentials, model and quota.`,
@@ -346,8 +380,11 @@ export async function runAgent(
       let result: unknown;
       let failed = false;
       try {
-        if (!Object.hasOwn(toolSchemas, call.name))
-          throw new Error("Unknown tool");
+        if (
+          !Object.hasOwn(toolSchemas, call.name) ||
+          !allowedTools[task].includes(call.name as ToolName)
+        )
+          throw new Error("Tool is not available for this workflow");
         result = await executeTool(w, call.name as ToolName, call.input);
       } catch (e) {
         failed = true;

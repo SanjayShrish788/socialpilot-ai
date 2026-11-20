@@ -1,21 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import {
-  ArrowDownRight,
-  ArrowRight,
-  CalendarDays,
-  ChartNoAxesCombined,
-  ClipboardCheck,
-  Clock3,
-  FileText,
-  Plus,
-  Radio,
-  ShieldCheck,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { CalendarDays, Clock3, TrendingUp, Users } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -27,8 +13,7 @@ import {
   YAxis,
 } from "recharts";
 import { samplePerformance } from "@/lib/sample-analytics";
-import { Card, EmptyState, PageHeader } from "./ui";
-import { useWorkspace } from "./workspace-provider";
+import { Card } from "./ui";
 
 const metrics = [
   {
@@ -221,120 +206,6 @@ export function Performance() {
           </table>
         </details>
       </Card>
-    </>
-  );
-}
-
-export function Dashboard() {
-  const { workspace } = useWorkspace();
-  const pending = workspace.posts.filter((post) => post.status === "In review");
-  return (
-    <>
-      <PageHeader
-        title="Dashboard"
-        description="Plan content, manage approvals, and review channel performance."
-        action={
-          <Link href="/content-studio" className="button primary">
-            <Plus size={17} /> New draft
-          </Link>
-        }
-      />
-      <section className="hero">
-        <div className="hero-art" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-          <Radio size={61} />
-        </div>
-        <div className="hero-body">
-          <span className="hero-label">
-            <Radio size={14} /> Social media workspace
-          </span>
-          <h2>
-            {workspace.brand.name
-              ? `Welcome, ${workspace.brand.name}`
-              : "Build a consistent brand presence"}
-          </h2>
-          <p>
-            Give every post a clear voice, a place on the calendar, and a human
-            review before it goes public.
-          </p>
-          <Link
-            href={workspace.brand.name ? "/content-calendar" : "/brand-profile"}
-            className="button hero-button"
-          >
-            {workspace.brand.name ? "Open calendar" : "Set up brand profile"}
-            <ArrowRight size={16} />
-          </Link>
-        </div>
-      </section>
-      <div className="section-heading">
-        <div>
-          <h2>Performance overview</h2>
-          <p>Illustrative demo metrics · not connected to live channels</p>
-        </div>
-        <Link href="/analytics" className="text-action">
-          Analytics <ArrowDownRight size={16} />
-        </Link>
-      </div>
-      <Performance />
-      <div className="two-column bottom-cards">
-        <Card
-          title="Approval queue"
-          description="Drafts awaiting human review"
-          aside={
-            <span className="tile-icon purple">
-              <ClipboardCheck size={18} />
-            </span>
-          }
-        >
-          {pending.length ? (
-            <ul className="plain-list">
-              {pending.slice(0, 3).map((post) => (
-                <li key={post.id}>
-                  <FileText size={16} />
-                  <span>{post.title}</span>
-                  <small>{post.channel}</small>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <EmptyState
-              icon={ClipboardCheck}
-              title="You’re all caught up"
-              description="Submitted drafts will appear here."
-            />
-          )}
-          <Link href="/approval-inbox" className="text-action">
-            Open approval inbox <ArrowRight size={15} />
-          </Link>
-        </Card>
-        <Card
-          title="Publishing guardrails"
-          description="Review rules from the contest brief"
-          aside={
-            <span className="tile-icon green">
-              <ShieldCheck size={18} />
-            </span>
-          }
-        >
-          <ul className="plain-list">
-            <li>
-              <ShieldCheck size={16} /> Human approval for public statements
-            </li>
-            <li>
-              <ShieldCheck size={16} /> Escalation for crisis and legal matters
-            </li>
-            <li>
-              <ChartNoAxesCombined size={16} /> Authentic engagement and brand
-              voice
-            </li>
-          </ul>
-          <Link href="/ai-agent" className="text-action">
-            View agent policy <ArrowRight size={15} />
-          </Link>
-        </Card>
-      </div>
     </>
   );
 }

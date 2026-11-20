@@ -2,7 +2,7 @@
 
 Autonomous Social Media Executive Agent for the WAE Consultancy Services Agent Maker-2026 competition.
 
-A Next.js application that takes a brand through **BRAND → PLAN → CREATE → ENGAGE → INSIGHTS**, with a human approval checkpoint before every simulated public action. Ten responsive screens share a navy-sidebar SaaS interface.
+A Next.js application that takes a brand through **BRAND → PLAN → CREATE → ENGAGE → INSIGHTS**, with a human approval checkpoint before every simulated public action. Nine focused screens cover the required workflows, setup and crisis review.
 
 ## Run locally
 
@@ -81,7 +81,7 @@ The browser sends its demo workspace to the stateless API. This isolates anonymo
 
 ## Supabase setup
 
-1. Create a Supabase project. Run `supabase/migrations/001_initial.sql` once in SQL Editor.
+1. Create a Supabase project. In its Connect dialog, find the project URL and publishable or anon key. A personal access token is not the project key. Run `supabase/migrations/001_initial.sql` once in SQL Editor.
 2. Enable email authentication and configure Site URL and redirect allowlist for `http://localhost:3000/integrations` and your deployed `/integrations` URL.
 3. Copy `.env.example` to `.env.local`. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (public publishable/anon key only). Restart/rebuild.
 4. In Settings, enter your email, follow the sign-in link and use **Save to cloud**.
@@ -95,7 +95,7 @@ Cloud persistence is an optional backup/sync workflow, not automatic multi-user 
 
 Copy `.env.example` to `.env.local`; never commit `.env.local`.
 
-For Claude, set `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` to a model available in your account. For compatible providers set `AI_API_KEY`, `AI_MODEL`, and optionally `AI_BASE_URL` (HTTPS URL ending in `/v1`; default OpenAI).
+After changing environment variables, restart the development server or rebuild the production app. For Claude, set `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` to a model available in your account. For compatible providers set `AI_API_KEY`, `AI_MODEL`, and optionally `AI_BASE_URL` (HTTPS URL ending in `/v1`; default OpenAI).
 
 Set `APP_ACCESS_TOKEN` to a long random secret. Enter that token (not the provider key) in Settings. It is kept in sessionStorage for the current tab session. Select the provider and run a workflow. Without valid authorization or provider credentials the request fails explicitly. The token is suitable for a controlled competition demo; replace it with per-user server authentication and quotas for a public paid service.
 
@@ -117,18 +117,18 @@ The current scheduler is deliberately manual: **Run demo scheduler** selects app
 
 ## Security and limits
 
-- Zod validates all action payloads; max request size is 2 MB, arrays bounded, provider timeout 45 seconds per round.
+- Zod validates all action payloads; max request size is 2 MB, arrays bounded, provider timeout 120 seconds per round.
 - Cross-origin mutations are rejected. No secrets are included in JSON health responses.
 - All public statements and sensitive replies require explicit human approval; edits reset state.
 - No arbitrary HTML rendering; React escapes generated content.
 - Demo approval records are locally editable by the browser owner. Do not treat them as compliance-grade immutable records.
 - SQL snapshots preserve history but are owner-supplied demo backups; do not authorize live operations from imported data.
 - Production dependency audit was clean during verification. Development-only picomatch dependency advisories remain upstream; do not run lint against untrusted glob patterns. A forced npm downgrade is not applied because it would break Next.js compatibility.
-- No external AI, Supabase or social credentials were available during local verification; those live paths are not claimed tested.
+- `npm test` and `npm run test:http` use the credentials-free demo or stubbed provider paths. No real social-channel publishing, comment/DM ingestion, social listening, or platform analytics are connected. Supabase sign-in and cloud backup require a configured project and are not exercised by the smoke tests.
 
 ## GitHub and deployment
 
-The intended public repository name is `socialpilot-ai`.
+The public repository is [socialpilot-ai](https://github.com/SanjayShrish788/socialpilot-ai).
 
 If publication is not already recorded in the final handoff:
 
